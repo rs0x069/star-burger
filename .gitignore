@@ -1,3 +1,6 @@
+# IntelliJ IDEA
+.idea/
+
 bundles/**
 node_modules/
 media/
