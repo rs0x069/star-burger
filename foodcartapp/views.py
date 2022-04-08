@@ -1,9 +1,8 @@
-import json
-
 from django.http import JsonResponse
-from django.shortcuts import redirect
 from django.templatetags.static import static
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 
 from .models import Product, Order, OrderProduct
 
@@ -60,21 +59,24 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    cart = json.loads(request.body.decode())
+    new_order = request.data
 
     order = Order.objects.create(
-        address=cart['address'],
-        firstname=cart['firstname'],
-        lastname=cart['lastname'],
-        phonenumber=cart['phonenumber']
+        address=new_order['address'],
+        firstname=new_order['firstname'],
+        lastname=new_order['lastname'],
+        phonenumber=new_order['phonenumber']
     )
 
-    for cart_product in cart['products']:
-        product = Product.objects.get(pk=cart_product['product'])
+    for new_order_product in new_order['products']:
+        product = Product.objects.get(pk=new_order_product['product'])
+
         order_product = OrderProduct(order=order)
         order_product.product = product
-        order_product.quantity = cart_product['quantity']
+        order_product.quantity = new_order_product['quantity']
+
         order_product.save()
 
-    return JsonResponse({})
+    return Response({})
