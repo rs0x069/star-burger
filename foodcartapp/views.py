@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.exceptions import ParseError
 
 from .models import Product, Order, OrderProduct
 
@@ -63,6 +63,15 @@ def product_list_api(request):
 def register_order(request):
     new_order = request.data
 
+    if 'products' not in new_order:
+        return Response({'error': 'Key \'products\' must be presented'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    if not isinstance(new_order['products'], list):
+        return Response({'error': 'Product key is not type of list'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    if not new_order['products']:
+        return Response({'error': 'List of products must be presented'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
     order = Order.objects.create(
         address=new_order['address'],
         firstname=new_order['firstname'],
@@ -79,4 +88,4 @@ def register_order(request):
 
         order_product.save()
 
-    return Response({})
+    return Response({'status': 'Order is added'})
