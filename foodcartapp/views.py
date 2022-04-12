@@ -4,6 +4,7 @@ from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError, Serializer, ModelSerializer, ListField
 
 from .models import Product, Order, OrderProduct
 
@@ -60,61 +61,34 @@ def product_list_api(request):
     })
 
 
+class OrderProductSerializer(ModelSerializer):
+    class Meta:
+        model = OrderProduct
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = ListField(child=OrderProductSerializer(), allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['products', 'address', 'firstname', 'lastname', 'phonenumber']
+
+
 @api_view(['POST'])
 def register_order(request):
-    new_order = request.data
-
-    required_keys = ['products', 'firstname', 'lastname', 'phonenumber', 'address']
-    for key in required_keys:
-        if key not in new_order:
-            return Response({'error': f'Key \'{key}\' must be presented'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    for key, value in new_order.items():
-        if not value:
-            return Response({'error': f'The field of key \'{key}\' cannot be empty or null'},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    new_order_address = new_order['address']
-    new_order_firstname = new_order['firstname']
-    new_order_lastname = new_order['lastname']
-    new_order_phonenumber = new_order['phonenumber']
-    new_order_products = new_order['products']
-
-    if not isinstance(new_order_products, list):
-        return Response({'error': 'The key \'products\' is not type of list'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(new_order_firstname, str):
-        return Response({'error': 'The key \'firstname\' is not type of str'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(new_order_lastname, str):
-        return Response({'error': 'The key \'lastname\' is not type of str'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(new_order_phonenumber, str):
-        return Response({'error': 'The key \'phonenumber\' is not type of str'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(new_order_address, str):
-        return Response({'error': 'The key \'address\' is not type of str'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    is_phonenumber_valid = PhoneNumber.from_string(phone_number=new_order_phonenumber).is_valid()
-    if not is_phonenumber_valid:
-        return Response({'error': 'Phonenumber is not valid'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    for new_order_product in new_order_products:
-        try:
-            Product.objects.get(pk=new_order_product['product'])
-        except Product.DoesNotExist:
-            return Response({'error': 'The product could not be found'}, status=status.HTTP_404_NOT_FOUND)
+    new_order = OrderSerializer(data=request.data)
+    new_order.is_valid(raise_exception=True)
 
     order = Order.objects.create(
-        address=new_order_address,
-        firstname=new_order_firstname,
-        lastname=new_order_lastname,
-        phonenumber=new_order_phonenumber
+        address=new_order.validated_data['address'],
+        firstname=new_order.validated_data['firstname'],
+        lastname=new_order.validated_data['lastname'],
+        phonenumber=new_order.validated_data['phonenumber']
     )
 
-    for new_order_product in new_order_products:
-        product = Product.objects.get(pk=new_order_product['product'])
-
-        order_product = OrderProduct(order=order)
-        order_product.product = product
-        order_product.quantity = new_order_product['quantity']
-
-        order_product.save()
+    new_order_products = new_order.validated_data['products']
+    order_products = [OrderProduct(order=order, **fields) for fields in new_order_products]
+    OrderProduct.objects.bulk_create(order_products)
 
     return Response({'status': 'Order is added'})
