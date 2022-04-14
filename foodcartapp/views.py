@@ -1,10 +1,10 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
-from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError, Serializer, ModelSerializer, ListField
+from rest_framework.serializers import ModelSerializer, ListField
+from rest_framework.renderers import JSONRenderer
 
 from .models import Product, Order, OrderProduct
 
@@ -68,27 +68,25 @@ class OrderProductSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = ListField(child=OrderProductSerializer(), allow_empty=False)
+    products = ListField(child=OrderProductSerializer(), allow_empty=False, write_only=True)
+    # products = OrderProductSerializer(many=True, allow_empty=False)
 
     class Meta:
         model = Order
-        fields = ['products', 'address', 'firstname', 'lastname', 'phonenumber']
+        fields = ['id', 'products', 'firstname', 'lastname', 'phonenumber', 'address']
+
+    def create(self, validated_data):
+        products = validated_data.pop('products')
+        order = Order.objects.create(**validated_data)
+        for product in products:
+            OrderProduct.objects.create(order=order, **product)
+        return order
 
 
 @api_view(['POST'])
 def register_order(request):
     new_order = OrderSerializer(data=request.data)
-    new_order.is_valid(raise_exception=True)
-
-    order = Order.objects.create(
-        address=new_order.validated_data['address'],
-        firstname=new_order.validated_data['firstname'],
-        lastname=new_order.validated_data['lastname'],
-        phonenumber=new_order.validated_data['phonenumber']
-    )
-
-    new_order_products = new_order.validated_data['products']
-    order_products = [OrderProduct(order=order, **fields) for fields in new_order_products]
-    OrderProduct.objects.bulk_create(order_products)
-
-    return Response({'status': 'Order is added'})
+    if new_order.is_valid(raise_exception=True):
+        new_order.save()
+        return Response(new_order.data, status=status.HTTP_200_OK)
+    return Response(new_order.errors, status=status.HTTP_400_BAD_REQUEST)
