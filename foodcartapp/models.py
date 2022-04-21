@@ -1,5 +1,6 @@
-from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
+from django.db.models import Sum, F
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -124,11 +125,19 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+    def all_with_costs(self):
+        order_cost = self.annotate(cost=Sum(F('order_products__product__price') * F('order_products__quantity')))
+        return order_cost
+
+
 class Order(models.Model):
     address = models.CharField(max_length=128, verbose_name='Адрес', db_index=True)
     firstname = models.CharField(max_length=64, verbose_name='Имя', db_index=True)
     lastname = models.CharField(max_length=64, verbose_name='Фамилия', db_index=True)
     phonenumber = PhoneNumberField(max_length=12, verbose_name='Мобильный телефон', db_index=True)
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         verbose_name_plural = 'Заказы'
@@ -139,7 +148,7 @@ class Order(models.Model):
 
 
 class OrderProduct(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='products', verbose_name='Заказ')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_products', verbose_name='Заказ')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], default=1,
                                    verbose_name='Количество')
