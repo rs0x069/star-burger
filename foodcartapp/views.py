@@ -79,7 +79,9 @@ class OrderSerializer(ModelSerializer):
         products = validated_data.pop('products')
         order = Order.objects.create(**validated_data)
         for product in products:
-            OrderProduct.objects.create(order=order, **product)
+            op = OrderProduct(order=order, **product)
+            op.cost = op.calculate_cost()
+            op.save()
         return order
 
 

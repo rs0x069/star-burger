@@ -110,7 +110,6 @@ class ProductAdmin(admin.ModelAdmin):
 
 class OrderProductInline(admin.TabularInline):
     model = OrderProduct
-    # fields = ('image', 'preview_image')
     extra = 0
 
 
@@ -119,4 +118,15 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderProductInline,
     ]
-    search_fields = ['title']
+    list_display = ['id', 'firstname', 'lastname', 'address']
+    search_fields = ['firstname', 'lastname', 'address']
+
+    def save_formset(self, request, form, formset, change):
+        # TODO: Never recalculate order's items cost if the order exist
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            instance.cost = instance.product.price * instance.quantity
+            instance.save()
+        formset.save_m2m()

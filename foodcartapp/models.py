@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, DecimalValidator
 from django.db import models
 from django.db.models import Sum, F
 from phonenumber_field.modelfields import PhoneNumberField
@@ -152,6 +152,8 @@ class OrderProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], default=1,
                                    verbose_name='Количество')
+    cost = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)],
+                                verbose_name='Стоимость')
 
     class Meta:
         verbose_name_plural = 'Элементы заказа'
@@ -159,3 +161,7 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f'{self.order} - {self.product} - {self.quantity}'
+
+    def calculate_cost(self):
+        cost = self.product.price * self.quantity
+        return cost
