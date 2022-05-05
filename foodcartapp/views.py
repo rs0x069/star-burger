@@ -80,7 +80,6 @@ class OrderSerializer(ModelSerializer):
         products = validated_data.pop('products')
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
-            tst = 0/0
             for product in products:
                 op = OrderProduct(order=order, **product)
                 op.cost = op.calculate_cost()
