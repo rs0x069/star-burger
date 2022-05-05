@@ -1,8 +1,10 @@
 from django.contrib import admin
-from django.shortcuts import reverse
+from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
 
+from star_burger import settings
 from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
@@ -130,3 +132,15 @@ class OrderAdmin(admin.ModelAdmin):
             instance.cost = instance.product.price * instance.quantity
             instance.save()
         formset.save_m2m()
+
+    def response_change(self, request, obj):
+        redirect_to = request.GET.get('next', None)
+        url_is_safe = url_has_allowed_host_and_scheme(
+            redirect_to,
+            settings.ALLOWED_HOSTS,
+            require_https=request.is_secure()
+        )
+        if url_is_safe and redirect_to:
+            return redirect(redirect_to)
+
+        return super(OrderAdmin, self).response_change(request, obj)
