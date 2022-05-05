@@ -1,3 +1,4 @@
+from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework import status
@@ -77,12 +78,14 @@ class OrderSerializer(ModelSerializer):
 
     def create(self, validated_data):
         products = validated_data.pop('products')
-        order = Order.objects.create(**validated_data)
-        for product in products:
-            op = OrderProduct(order=order, **product)
-            op.cost = op.calculate_cost()
-            op.save()
-        return order
+        with transaction.atomic():
+            order = Order.objects.create(**validated_data)
+            tst = 0/0
+            for product in products:
+                op = OrderProduct(order=order, **product)
+                op.cost = op.calculate_cost()
+                op.save()
+            return order
 
 
 @api_view(['POST'])
