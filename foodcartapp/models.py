@@ -143,6 +143,9 @@ class Order(models.Model):
     phonenumber = PhoneNumberField(max_length=12, verbose_name='Мобильный телефон', db_index=True)
     status = models.CharField(max_length=6, choices=STATUS, default='NEW', verbose_name='Статус', db_index=True)
     comment = models.TextField(blank=True, verbose_name='Комментарий')
+    registered_datetime = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время создания', db_index=True)
+    called_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время звонка', db_index=True)
+    delivered_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время доставки', db_index=True)
 
     objects = OrderQuerySet.as_manager()
 

@@ -122,6 +122,7 @@ class OrderAdmin(admin.ModelAdmin):
     ]
     list_display = ['id', 'firstname', 'lastname', 'address']
     search_fields = ['firstname', 'lastname', 'address']
+    readonly_fields = ('registered_datetime',)
 
     def save_formset(self, request, form, formset, change):
         # TODO: Never recalculate order's items cost if the order exist
