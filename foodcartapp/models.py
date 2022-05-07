@@ -136,6 +136,11 @@ class Order(models.Model):
         ('NEW', 'Необработанный'),
         ('CLOSED', 'Закрыт')
     )
+    PAYMENT_TYPE = (
+        ('NOTSET', 'Не установлено'),
+        ('CASH', 'Наличными'),
+        ('ELECTRONIC', 'Элетронно')
+    )
 
     address = models.CharField(max_length=128, verbose_name='Адрес', db_index=True)
     firstname = models.CharField(max_length=64, verbose_name='Имя', db_index=True)
@@ -145,7 +150,10 @@ class Order(models.Model):
     comment = models.TextField(blank=True, verbose_name='Комментарий')
     registered_datetime = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время создания', db_index=True)
     called_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время звонка', db_index=True)
-    delivered_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время доставки', db_index=True)
+    delivered_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время доставки',
+                                              db_index=True)
+    payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE, default='NOTSET', verbose_name='Способ оплаты',
+                                    db_index=True)
 
     objects = OrderQuerySet.as_manager()
 
