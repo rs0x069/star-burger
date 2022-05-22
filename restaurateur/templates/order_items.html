@@ -21,10 +21,11 @@
       <th>Телефон</th>
       <th>Адрес доставки</th>
       <th>Комментарий</th>
+      <th>Рестораны</th>
       <th>Ссылка на админку</th>
     </tr>
 
-    {% for order in orders %}
+    {% for order, restaurants in orders %}
       <tr>
         <td>{{ order.id }}</td>
         <td>{{ order.get_status_display }}</td>
@@ -34,6 +35,14 @@
         <td>{{ order.phonenumber }}</td>
         <td>{{ order.address }}</td>
         <td>{{ order.comment }}</td>
+        <td>
+          <details>
+            <summary>Развернуть</summary>
+            {% for restaurant in restaurants %}
+              <p>{{ restaurant.name }} - {{ restaurant.distance|floatformat:2 }}&nbsp;км</p>
+            {% endfor %}
+          </details>
+        </td>
         <td>
           <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}">
           Редактировать

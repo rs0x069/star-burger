@@ -1,15 +1,16 @@
 from django import forms
+from django.conf import settings
 from django.db.models import F, Sum
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
+from geopy import distance
 
 from foodcartapp.models import Product, Restaurant, Order, OrderProduct
+from restaurateur.yandex_geocoder import fetch_coordinates
 
 
 class Login(forms.Form):
@@ -98,8 +99,38 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.all_with_costs().filter(status='NEW')
+    yandex_api = settings.YANDEX_API
+
+    orders = Order.objects.all_with_costs().exclude(status='CLOSED')
+
+    orders_with_restaurants = []
+    for order in orders:
+        # \\TODO: Make suitable restaurants than can make whole order
+        suitable_restaurants = []
+        product_in_restaurants = []
+        for order_products in order.order_products.all():
+            product_in_restaurants.append(order_products.product.menu_items.filter(availability=True))
+        # for restaurant in product_restaurants:
+        #     if restaurant not in suitable_restaurants:
+        #         suitable_restaurants.append(restaurant)
+        for i in range(len(product_in_restaurants)):
+            for j in range(len(product_in_restaurants[i])):
+                order_distance = None
+                restaurant = product_in_restaurants[i][j].restaurant
+
+                restaurant_geocode = fetch_coordinates(yandex_api, restaurant.address)
+                order_geocode = fetch_coordinates(yandex_api, order.address)
+                if restaurant_geocode is not None and order_geocode is not None:
+                    order_distance = distance.distance(restaurant_geocode, order_geocode).km
+
+                suitable_restaurants.append({'name': restaurant.name, 'distance': str(order_distance)})
+
+        orders_with_restaurants.append(
+            (order, sorted(suitable_restaurants, key=lambda d: d['distance']))
+        )
+
     context = {
-        'orders': orders,
+        'orders': orders_with_restaurants,
     }
+
     return render(request, template_name='order_items.html', context=context)

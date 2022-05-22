@@ -134,19 +134,20 @@ class OrderQuerySet(models.QuerySet):
 class Order(models.Model):
     STATUS = (
         ('NEW', 'Необработанный'),
+        ('COOKING', 'Готовится'),
         ('CLOSED', 'Закрыт')
     )
     PAYMENT_TYPE = (
         ('NOTSET', 'Не установлено'),
         ('CASH', 'Наличными'),
-        ('ELECTRONIC', 'Элетронно')
+        ('ELECTRONIC', 'Электронно')
     )
 
     address = models.CharField(max_length=128, verbose_name='Адрес', db_index=True)
     firstname = models.CharField(max_length=64, verbose_name='Имя', db_index=True)
     lastname = models.CharField(max_length=64, verbose_name='Фамилия', db_index=True)
     phonenumber = PhoneNumberField(max_length=12, verbose_name='Мобильный телефон', db_index=True)
-    status = models.CharField(max_length=6, choices=STATUS, default='NEW', verbose_name='Статус', db_index=True)
+    status = models.CharField(max_length=7, choices=STATUS, default='NEW', verbose_name='Статус', db_index=True)
     comment = models.TextField(blank=True, verbose_name='Комментарий')
     registered_datetime = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время создания', db_index=True)
     called_datetime = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время звонка', db_index=True)
