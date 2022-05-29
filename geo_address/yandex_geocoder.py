@@ -16,6 +16,5 @@ def fetch_coordinates(apikey, address):
 
     most_relevant = found_places[0]
     lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
-    # return lon, lat
-    # Need return lat/lon for geopy
+    # return lon, lat  # Need return lat/lon for geopy
     return lat, lon

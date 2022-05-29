@@ -1,13 +1,17 @@
-from django.db import transaction, IntegrityError
+import datetime
+
+from django.conf import settings
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer, ListField
-from rest_framework.renderers import JSONRenderer
 
-from .models import Product, Order, OrderProduct
+from foodcartapp.models import Product, Order, OrderProduct
+from geo_address.models import GeoAddress
+from geo_address.yandex_geocoder import fetch_coordinates
 
 
 def banners_list_api(request):
@@ -77,6 +81,10 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'products', 'firstname', 'lastname', 'phonenumber', 'address']
 
     def create(self, validated_data):
+        order_address = validated_data.get('address')
+        order_address_lat, order_address_lon = fetch_coordinates(settings.YANDEX_API, order_address)
+        GeoAddress.objects.get_or_create(address=order_address, lat=order_address_lat, lon=order_address_lon,
+                                         update_date=datetime.date.today())
         products = validated_data.pop('products')
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
