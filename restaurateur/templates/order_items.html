@@ -25,7 +25,7 @@
       <th>Ссылка на админку</th>
     </tr>
 
-    {% for order, restaurants in orders %}
+     {% for order in orders_list %}
       <tr>
         <td>{{ order.id }}</td>
         <td>{{ order.get_status_display }}</td>
@@ -38,9 +38,35 @@
         <td>
           <details>
             <summary>Развернуть</summary>
-            {% for restaurant in restaurants %}
+          </details>
+        </td>
+        <td>
+          <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}">
+          Редактировать
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+
+     <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+    {% comment %}{% for order, restaurants in orders %}{% endcomment %}
+    {% for order in orders %}
+      <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>{{ order.get_payment_type_display }}</td>
+        <td>{{ order.cost }}&nbsp;руб.</td>
+        <td>{{ order.firstname }}&nbsp;{{ order.lastname }}</td>
+        <td>{{ order.phonenumber }}</td>
+        <td>{{ order.address }}</td>
+        <td>{{ order.comment }}</td>
+        <td>
+          <details>
+            <summary>Развернуть</summary>
+            {% comment %}{% for restaurant in restaurants %}
               <p>{{ restaurant.name }} - {{ restaurant.distance|floatformat:2 }}&nbsp;км</p>
-            {% endfor %}
+            {% endfor %}{% endcomment %}
           </details>
         </td>
         <td>
