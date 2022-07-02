@@ -131,8 +131,7 @@ class OrderAdmin(admin.ModelAdmin):
             obj.delete()
         for instance in instances:
             instance.cost = instance.product.price * instance.quantity
-            instance.save()
-        formset.save_m2m()
+        super().save_formset(request, form, formset, change)
 
     def response_change(self, request, obj):
         redirect_to = request.GET.get('next', None)
