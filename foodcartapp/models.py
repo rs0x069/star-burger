@@ -182,5 +182,4 @@ class OrderProduct(models.Model):
         return f'{self.order} - {self.product} - {self.quantity}'
 
     def calculate_cost(self):
-        cost = self.product.price * self.quantity
-        return cost
+        self.cost = self.product.price * self.quantity

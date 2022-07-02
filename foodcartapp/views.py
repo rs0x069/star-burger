@@ -88,8 +88,9 @@ class OrderSerializer(ModelSerializer):
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
             for product in products:
+                print(f'{product=}')
                 op = OrderProduct(order=order, **product)
-                op.cost = op.calculate_cost()
+                op.calculate_cost()
                 op.save()
             return order
 
