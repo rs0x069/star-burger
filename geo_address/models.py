@@ -7,7 +7,7 @@ class GeoAddress(models.Model):
                               help_text="latitude, lat")
     lon = models.DecimalField(max_digits=17, decimal_places=15, verbose_name="Координаты: долгота",
                               help_text="longitude, lon")
-    update_date = models.DateField(blank=True, null=True, verbose_name='Дата обновления координат', db_index=True)
+    update_date = models.DateField(auto_now=True, verbose_name='Дата обновления координат', db_index=True)
 
     class Meta:
         verbose_name_plural = 'Координаты адресов'
