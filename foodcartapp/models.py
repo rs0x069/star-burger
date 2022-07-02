@@ -168,7 +168,8 @@ class Order(models.Model):
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_products', verbose_name='Заказ')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products_in_order',
+                                verbose_name='Товар')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], default=1,
                                    verbose_name='Количество')
     cost = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)],
