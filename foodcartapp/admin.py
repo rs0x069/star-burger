@@ -143,4 +143,4 @@ class OrderAdmin(admin.ModelAdmin):
         if url_is_safe and redirect_to:
             return redirect(redirect_to)
 
-        return super(OrderAdmin, self).response_change(request, obj)
+        return super().response_change(request, obj)
