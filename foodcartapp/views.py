@@ -1,5 +1,3 @@
-import datetime
-
 from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
@@ -74,7 +72,6 @@ class OrderProductSerializer(ModelSerializer):
 
 class OrderSerializer(ModelSerializer):
     products = ListField(child=OrderProductSerializer(), allow_empty=False, write_only=True)
-    # products = OrderProductSerializer(many=True, allow_empty=False)
 
     class Meta:
         model = Order
@@ -87,11 +84,15 @@ class OrderSerializer(ModelSerializer):
         products = validated_data.pop('products')
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
-            for product in products:
-                print(f'{product=}')
-                op = OrderProduct(order=order, **product)
-                op.calculate_cost()
-                op.save()
+            order_content = [
+                OrderProduct(
+                    order=order,
+                    product=product['product'],
+                    quantity=product['quantity'],
+                    cost=product['product'].price * product['quantity']
+                ) for product in products
+            ]
+            OrderProduct.objects.bulk_create(order_content)
             return order
 
 
