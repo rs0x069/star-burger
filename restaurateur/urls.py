@@ -13,7 +13,7 @@ urlpatterns = [
     path('restaurants/', views.view_restaurants, name="RestaurantView"),
 
     # TODO заглушка для нереализованного функционала
-    path('orders/', views.view_orders, name="view_orders"),
+    path('orders/', views.view_orders_related, name="view_orders"),
 
     path('login/', views.LoginView.as_view(), name="login"),
     path('logout/', views.LogoutView.as_view(), name="logout"),

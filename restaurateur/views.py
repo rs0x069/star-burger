@@ -106,6 +106,29 @@ def get_coordinates(address, yandex_api):
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
+def view_orders_related(request):
+    # orders = Order.objects.exclude(status='CLOSED').select_related('order_products')
+    # orders = Order.objects.prefetch_related(Prefetch('order_products', queryset=OrderProduct.objects.select_related('order')))
+    # orders = Order.objects.prefetch_related('order_products')
+    orders = Order.objects.prefetch_related(Prefetch('order_products'))
+
+    for order in orders:
+        print('order =', order.order_products.all())
+        # for item in order.order_products:
+
+
+    # for order in orders:
+    #     for order_product in order.order_products:
+    #         print('order_product =', order_product.quantity)
+
+    context = {
+        'orders': orders,
+    }
+
+    return render(request, template_name='order_items_related.html', context=context)
+
+
+@user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     yandex_api = settings.YANDEX_API
 
@@ -130,7 +153,7 @@ def view_orders(request):
                 # restaurant_geocode_address = get_coordinates(restaurant.address, yandex_api)
                 # order_geocode_address = get_coordinates(order.address, yandex_api)
                 #
-                # if restaurant_geocode_address is not None and order_geocode_address is not None:
+                # if restaurant_geocode_address and order_geocode_address:
                 #     order_distance = distance.distance(restaurant_geocode_address, order_geocode_address).km
 
                 suitable_restaurants.append({'name': restaurant.name, 'distance': str(order_distance)})
@@ -141,7 +164,8 @@ def view_orders(request):
     # print(order.product.menu_items.filter(availability=True))
 
 
-    orders = Order.objects.all_with_costs().exclude(status='CLOSED').prefetch_related('order_products')
+    # orders = Order.objects.all_with_costs().exclude(status='CLOSED').prefetch_related('order_products')
+    orders = Order.objects.exclude(status='CLOSED').select_related()
 
     # orders_with_restaurants = []
     # for order in orders:
