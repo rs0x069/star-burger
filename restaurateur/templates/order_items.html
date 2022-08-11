@@ -24,8 +24,7 @@
       <th>Рестораны</th>
       <th>Ссылка на админку</th>
     </tr>
-
-     {% for order in orders_list %}
+     {% for order in orders %}
       <tr>
         <td>{{ order.id }}</td>
         <td>{{ order.get_status_display }}</td>
@@ -36,38 +35,20 @@
         <td>{{ order.address }}</td>
         <td>{{ order.comment }}</td>
         <td>
-          <details>
-            <summary>Развернуть</summary>
-          </details>
-        </td>
-        <td>
-          <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}">
-          Редактировать
-          </a>
-        </td>
-      </tr>
-    {% endfor %}
-
-     <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-
-    {% comment %}{% for order, restaurants in orders %}{% endcomment %}
-    {% for order in orders %}
-      <tr>
-        <td>{{ order.id }}</td>
-        <td>{{ order.get_status_display }}</td>
-        <td>{{ order.get_payment_type_display }}</td>
-        <td>{{ order.cost }}&nbsp;руб.</td>
-        <td>{{ order.firstname }}&nbsp;{{ order.lastname }}</td>
-        <td>{{ order.phonenumber }}</td>
-        <td>{{ order.address }}</td>
-        <td>{{ order.comment }}</td>
-        <td>
-          <details>
-            <summary>Развернуть</summary>
-            {% comment %}{% for restaurant in restaurants %}
-              <p>{{ restaurant.name }} - {{ restaurant.distance|floatformat:2 }}&nbsp;км</p>
-            {% endfor %}{% endcomment %}
-          </details>
+          {% if order.restaurant %}
+            Готовит:&nbsp;{{ order.restaurant }}
+          {% elif order.suitable_restaurants %}
+            <details>
+              <summary>Могут приготовить</summary>
+              <ul>
+              {% for suitable_restaurant in order.suitable_restaurants %}
+                <li>{{ suitable_restaurant }}</li>
+              {% endfor %}
+              </ul>
+            </details>
+          {% else %}
+            Нет подходящего ресторана
+          {% endif %}
         </td>
         <td>
           <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}">

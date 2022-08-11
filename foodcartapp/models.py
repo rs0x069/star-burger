@@ -1,6 +1,9 @@
+import copy
+from collections import defaultdict
+
 from django.core.validators import MinValueValidator, MaxValueValidator, DecimalValidator
 from django.db import models
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Prefetch
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -126,9 +129,40 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def all_with_costs(self):
-        order_cost = self.annotate(cost=Sum(F('order_products__product__price') * F('order_products__quantity')))
-        return order_cost
+    def get_order_sum(self):
+        order_sum = self.annotate(cost=Sum(F('order_items__product__price') * F('order_items__quantity')))
+        return order_sum
+
+    def get_suitable_restaurants(self):
+        orders = self.prefetch_related('order_items')
+
+        ### Better way, requests to db is less ###
+        # orders = self.prefetch_related(Prefetch('order_items', queryset=OrderProduct.objects.select_related('product')))
+        # menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
+        #
+        # restaurants_by_items = defaultdict(list)
+        # for menu_item in menu_items:
+        #     restaurants_by_items[menu_item.product.id].append(menu_item.restaurant)
+
+        for order in orders:
+            ## Better way, requests to db is less ###
+            # order_restaurants_by_items = [
+            #     copy.deepcopy(restaurants_by_items[order_item.product.id])
+            #     for order_item in order.order_items.all()
+            # ]
+            # suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
+
+            product_in_restaurants = defaultdict(list)
+            for order_item in order.order_items.select_related('product'):
+                for menu_item in order_item.product.menu_items.filter(availability=True).select_related('restaurant'):
+                    product_in_restaurants[order_item.product.id].append(menu_item.restaurant)
+            suitable_restaurants = list(
+                set.intersection(*[set(restaurant) for key, restaurant in product_in_restaurants.items()])
+            )
+
+            order.suitable_restaurants = suitable_restaurants
+
+        return orders
 
 
 class Order(models.Model):
@@ -155,6 +189,8 @@ class Order(models.Model):
                                               db_index=True)
     payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE, default='NOTSET', verbose_name='Способ оплаты',
                                     db_index=True)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, blank=True, null=True, related_name='orders',
+                                   verbose_name='Ресторан')
 
     objects = OrderQuerySet.as_manager()
 
@@ -167,8 +203,8 @@ class Order(models.Model):
 
 
 class OrderProduct(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_products', verbose_name='Заказ')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products_in_order',
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items', verbose_name='Заказ')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items',
                                 verbose_name='Товар')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], default=1,
                                    verbose_name='Количество')
