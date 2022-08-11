@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import forms
 from django.conf import settings
 from django.db.models import Prefetch
@@ -10,7 +12,7 @@ from django.contrib.auth import views as auth_views
 from geopy import distance
 
 from geo_address.models import GeoAddress
-from foodcartapp.models import Product, Restaurant, Order, OrderProduct
+from foodcartapp.models import Product, Restaurant, Order, OrderProduct, RestaurantMenuItem
 from geo_address.yandex_geocoder import fetch_coordinates
 
 
@@ -106,98 +108,7 @@ def get_coordinates(address, yandex_api):
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
-def view_orders_related(request):
-    # orders = Order.objects.exclude(status='CLOSED').select_related('order_products')
-    # orders = Order.objects.prefetch_related(Prefetch('order_products', queryset=OrderProduct.objects.select_related('order')))
-    # orders = Order.objects.prefetch_related('order_products')
-    orders = Order.objects.prefetch_related(Prefetch('order_products'))
-
-    for order in orders:
-        print('order =', order.order_products.all())
-        # for item in order.order_products:
-
-
-    # for order in orders:
-    #     for order_product in order.order_products:
-    #         print('order_product =', order_product.quantity)
-
-    context = {
-        'orders': orders,
-    }
-
-    return render(request, template_name='order_items_related.html', context=context)
-
-
-@user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    yandex_api = settings.YANDEX_API
+    orders = Order.objects.exclude(status='CLOSED').get_order_sum().get_suitable_restaurants()
 
-    suitable_restaurants = []
-    product_in_restaurants = []
-    orders_list = []
-    # orders_sl = OrderProduct.objects.exclude(order__status='CLOSED').select_related('order')
-    orders_product = OrderProduct.objects \
-        .prefetch_related(Prefetch('order', queryset=Order.objects.all_with_costs().exclude(status='CLOSED'))) \
-        .select_related('product')
-
-    for order_products in orders_product:
-        if order_products.order not in orders_list:
-            orders_list.append(order_products.order)
-        product_in_restaurants.append(order_products.product.menu_items.filter(availability=True))
-
-        for i in range(len(product_in_restaurants)):
-            for j in range(len(product_in_restaurants[i])):
-                order_distance = None
-                restaurant = product_in_restaurants[i][j].restaurant
-
-                # restaurant_geocode_address = get_coordinates(restaurant.address, yandex_api)
-                # order_geocode_address = get_coordinates(order.address, yandex_api)
-                #
-                # if restaurant_geocode_address and order_geocode_address:
-                #     order_distance = distance.distance(restaurant_geocode_address, order_geocode_address).km
-
-                suitable_restaurants.append({'name': restaurant.name, 'distance': str(order_distance)})
-
-    # else:
-    #     orders_list
-    # product_in_restaurants.append(order.product.menu_items.filter(availability=True))
-    # print(order.product.menu_items.filter(availability=True))
-
-
-    # orders = Order.objects.all_with_costs().exclude(status='CLOSED').prefetch_related('order_products')
-    orders = Order.objects.exclude(status='CLOSED').select_related()
-
-    # orders_with_restaurants = []
-    # for order in orders:
-    #     # \\TODO: Make suitable restaurants than can make whole order
-    #     suitable_restaurants = []
-    #     product_in_restaurants = []
-    #     for order_products in order.order_products.all().select_related('product'):
-    #         product_in_restaurants.append(order_products.product.menu_items.filter(availability=True))
-    #         # for restaurant in product_in_restaurants:
-    #         #     if restaurant not in suitable_restaurants:
-    #         #         suitable_restaurants.append(restaurant)
-    #         for i in range(len(product_in_restaurants)):
-    #             for j in range(len(product_in_restaurants[i])):
-    #                 order_distance = None
-    #                 restaurant = product_in_restaurants[i][j].restaurant
-    #
-    #                 restaurant_geocode_address = get_coordinates(restaurant.address, yandex_api)
-    #                 order_geocode_address = get_coordinates(order.address, yandex_api)
-    #
-    #                 if restaurant_geocode_address is not None and order_geocode_address is not None:
-    #                     order_distance = distance.distance(restaurant_geocode_address, order_geocode_address).km
-    #
-    #                 suitable_restaurants.append({'name': restaurant.name, 'distance': str(order_distance)})
-    #
-    #         orders_with_restaurants.append(
-    #             (order, sorted(suitable_restaurants, key=lambda d: d['distance']))
-    #         )
-
-    context = {
-        # 'orders': orders_with_restaurants,
-        'orders': orders,
-        'orders_list': orders_list,
-    }
-
-    return render(request, template_name='order_items.html', context=context)
+    return render(request, template_name='order_items.html', context={'orders': orders})
