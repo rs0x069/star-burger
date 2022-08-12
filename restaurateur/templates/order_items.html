@@ -42,7 +42,7 @@
               <summary>Могут приготовить</summary>
               <ul>
               {% for suitable_restaurant in order.suitable_restaurants %}
-                <li>{{ suitable_restaurant }}</li>
+                <li>{{ suitable_restaurant }} - {{ suitable_restaurant.distance }}км.</li>
               {% endfor %}
               </ul>
             </details>

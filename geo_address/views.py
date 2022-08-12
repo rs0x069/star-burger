@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from geo_address.models import GeoAddress
+from geo_address.yandex_geocoder import fetch_coordinates
 
-# Create your views here.
+
+def get_coordinates(address):
+    try:
+        return GeoAddress.objects.values_list('lat', 'lon').get(address=address)
+    except GeoAddress.DoesNotExist:
+        return fetch_coordinates(address)

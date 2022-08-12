@@ -4,7 +4,10 @@ from collections import defaultdict
 from django.core.validators import MinValueValidator, MaxValueValidator, DecimalValidator
 from django.db import models
 from django.db.models import Sum, F, Prefetch
+from geopy import distance
 from phonenumber_field.modelfields import PhoneNumberField
+
+from geo_address.views import get_coordinates
 
 
 class Restaurant(models.Model):
@@ -134,10 +137,12 @@ class OrderQuerySet(models.QuerySet):
         return order_sum
 
     def get_suitable_restaurants(self):
-        orders = self.prefetch_related('order_items')
+        orders = self.prefetch_related(Prefetch('order_items', queryset=OrderProduct.objects.select_related('product')))
 
         ### Better way, requests to db is less ###
-        # orders = self.prefetch_related(Prefetch('order_items', queryset=OrderProduct.objects.select_related('product')))
+        # orders = self.prefetch_related(
+        #     Prefetch('order_items', queryset=OrderProduct.objects.select_related('product'))
+        # )
         # menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
         #
         # restaurants_by_items = defaultdict(list)
@@ -150,17 +155,22 @@ class OrderQuerySet(models.QuerySet):
             #     copy.deepcopy(restaurants_by_items[order_item.product.id])
             #     for order_item in order.order_items.all()
             # ]
-            # suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
+            # order.suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
 
             product_in_restaurants = defaultdict(list)
-            for order_item in order.order_items.select_related('product'):
+            for order_item in order.order_items.all():
+                # Похоже здесь можно использовать prefetch_related от модели Product к модели RestaurantMenuItem
                 for menu_item in order_item.product.menu_items.filter(availability=True).select_related('restaurant'):
                     product_in_restaurants[order_item.product.id].append(menu_item.restaurant)
-            suitable_restaurants = list(
+            order.suitable_restaurants = list(
                 set.intersection(*[set(restaurant) for key, restaurant in product_in_restaurants.items()])
             )
 
-            order.suitable_restaurants = suitable_restaurants
+            order_geocode_address = get_coordinates(order.address)
+            for restaurant in order.suitable_restaurants:
+                restaurant_geocode_address = get_coordinates(restaurant.address)
+                restaurant.distance = round(distance.distance(restaurant_geocode_address, order_geocode_address).km, 2)
+            order.suitable_restaurants = sorted(order.suitable_restaurants, key=lambda restaurant: restaurant.distance)
 
         return orders
 

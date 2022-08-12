@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
@@ -79,7 +78,7 @@ class OrderSerializer(ModelSerializer):
 
     def create(self, validated_data):
         order_address = validated_data.get('address')
-        order_address_lat, order_address_lon = fetch_coordinates(settings.YANDEX_API, order_address)
+        order_address_lat, order_address_lon = fetch_coordinates(order_address)
         GeoAddress.objects.get_or_create(address=order_address, lat=order_address_lat, lon=order_address_lon)
         products = validated_data.pop('products')
         with transaction.atomic():

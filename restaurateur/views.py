@@ -1,19 +1,12 @@
-from collections import defaultdict
-
 from django import forms
-from django.conf import settings
-from django.db.models import Prefetch
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from geopy import distance
 
-from geo_address.models import GeoAddress
-from foodcartapp.models import Product, Restaurant, Order, OrderProduct, RestaurantMenuItem
-from geo_address.yandex_geocoder import fetch_coordinates
+from foodcartapp.models import Product, Restaurant, Order
 
 
 class Login(forms.Form):
@@ -98,13 +91,6 @@ def view_restaurants(request):
     return render(request, template_name="restaurants_list.html", context={
         'restaurants': Restaurant.objects.all(),
     })
-
-
-def get_coordinates(address, yandex_api):
-    try:
-        return GeoAddress.objects.values_list('lat', 'lon').get(address=address)
-    except GeoAddress.DoesNotExist:
-        return fetch_coordinates(yandex_api, address)
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')

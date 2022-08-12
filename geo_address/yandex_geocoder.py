@@ -1,11 +1,13 @@
 import requests
 
+from django.conf import settings
 
-def fetch_coordinates(apikey, address):
+
+def fetch_coordinates(address):
     base_url = "https://geocode-maps.yandex.ru/1.x"
     response = requests.get(base_url, params={
         "geocode": address,
-        "apikey": apikey,
+        "apikey": settings.YANDEX_API,
         "format": "json",
     })
     response.raise_for_status()
