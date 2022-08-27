@@ -133,15 +133,15 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def get_order_sum(self):
-        order_sum = self.annotate(cost=Sum(F('order_items__product__price') * F('order_items__quantity')))
+        order_sum = self.annotate(cost=Sum(F('items__product__price') * F('items__quantity')))
         return order_sum
 
     def get_suitable_restaurants(self):
-        orders = self.prefetch_related(Prefetch('order_items', queryset=OrderProduct.objects.select_related('product')))
+        orders = self.prefetch_related(Prefetch('items', queryset=OrderProduct.objects.select_related('product')))
 
         ### Better way, requests to db is less ###
         # orders = self.prefetch_related(
-        #     Prefetch('order_items', queryset=OrderProduct.objects.select_related('product'))
+        #     Prefetch('items', queryset=OrderProduct.objects.select_related('product'))
         # )
         # menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
         #
@@ -153,12 +153,12 @@ class OrderQuerySet(models.QuerySet):
             ## Better way, requests to db is less ###
             # order_restaurants_by_items = [
             #     copy.deepcopy(restaurants_by_items[order_item.product.id])
-            #     for order_item in order.order_items.all()
+            #     for order_item in order.items.all()
             # ]
             # order.suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
 
             product_in_restaurants = defaultdict(list)
-            for order_item in order.order_items.all():
+            for order_item in order.items.all():
                 # Похоже здесь можно использовать prefetch_related от модели Product к модели RestaurantMenuItem
                 for menu_item in order_item.product.menu_items.filter(availability=True).select_related('restaurant'):
                     product_in_restaurants[order_item.product.id].append(menu_item.restaurant)
@@ -213,7 +213,7 @@ class Order(models.Model):
 
 
 class OrderProduct(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items', verbose_name='Заказ')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='Заказ')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items',
                                 verbose_name='Товар')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], default=1,
