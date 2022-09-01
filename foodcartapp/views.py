@@ -77,9 +77,13 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'products', 'firstname', 'lastname', 'phonenumber', 'address']
 
     def create(self, validated_data):
+
         order_address = validated_data.get('address')
-        order_address_lat, order_address_lon = fetch_coordinates(order_address)
-        GeoAddress.objects.get_or_create(address=order_address, lat=order_address_lat, lon=order_address_lon)
+        coordinates = fetch_coordinates(order_address)
+        if coordinates:
+            order_address_lat, order_address_lon = coordinates
+            GeoAddress.objects.get_or_create(address=order_address, lat=order_address_lat, lon=order_address_lon)
+
         products = validated_data.pop('products')
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
