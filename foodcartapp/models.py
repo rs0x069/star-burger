@@ -132,11 +132,11 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def get_orders_sum(self):
+    def with_orders_sum(self):
         orders = self.annotate(cost=Sum(F('items__cost') * F('items__quantity')))
         return orders
 
-    def get_suitable_restaurants(self):
+    def with_suitable_restaurants(self):
         orders = self.prefetch_related(Prefetch('items', queryset=OrderProduct.objects.select_related('product')))
 
         ### Better way, requests to db is less ###

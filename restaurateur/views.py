@@ -95,6 +95,6 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.exclude(status='CLOSED').get_orders_sum().get_suitable_restaurants()
+    orders = Order.objects.exclude(status='CLOSED').with_orders_sum().with_suitable_restaurants()
 
     return render(request, template_name='order_items.html', context={'orders': orders})
