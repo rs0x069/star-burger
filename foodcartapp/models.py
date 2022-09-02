@@ -166,11 +166,6 @@ class OrderQuerySet(models.QuerySet):
                 set.intersection(*[set(restaurant) for key, restaurant in product_in_restaurants.items()])
             )
 
-            # coordinates = fetch_coordinates(order.address)
-            # if coordinates:
-            #     order_address_lat, order_address_lon = coordinates
-            #     GeoAddress.objects.get_or_create(address=order.address, lat=order_address_lat, lon=order_address_lon)
-
             order_geocode_address = get_coordinates(order.address)
             for restaurant in order.suitable_restaurants:
                 restaurant_geocode_address = get_coordinates(restaurant.address)
