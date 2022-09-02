@@ -137,34 +137,21 @@ class OrderQuerySet(models.QuerySet):
         return orders
 
     def with_suitable_restaurants(self):
-        orders = self.prefetch_related(Prefetch('items', queryset=OrderProduct.objects.select_related('product')))
+        orders = self.prefetch_related(
+            Prefetch('items', queryset=OrderProduct.objects.select_related('product'))
+        )
+        menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
 
-        ### Better way, requests to db is less ###
-        # orders = self.prefetch_related(
-        #     Prefetch('items', queryset=OrderProduct.objects.select_related('product'))
-        # )
-        # menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
-        #
-        # restaurants_by_items = defaultdict(list)
-        # for menu_item in menu_items:
-        #     restaurants_by_items[menu_item.product.id].append(menu_item.restaurant)
+        restaurants_by_items = defaultdict(list)
+        for menu_item in menu_items:
+            restaurants_by_items[menu_item.product.id].append(menu_item.restaurant)
 
         for order in orders:
-            ## Better way, requests to db is less ###
-            # order_restaurants_by_items = [
-            #     copy.deepcopy(restaurants_by_items[order_item.product.id])
-            #     for order_item in order.items.all()
-            # ]
-            # order.suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
-
-            product_in_restaurants = defaultdict(list)
-            for order_item in order.items.all():
-                # Похоже здесь можно использовать prefetch_related от модели Product к модели RestaurantMenuItem
-                for menu_item in order_item.product.menu_items.filter(availability=True).select_related('restaurant'):
-                    product_in_restaurants[order_item.product.id].append(menu_item.restaurant)
-            order.suitable_restaurants = list(
-                set.intersection(*[set(restaurant) for key, restaurant in product_in_restaurants.items()])
-            )
+            order_restaurants_by_items = [
+                copy.deepcopy(restaurants_by_items[order_item.product.id])
+                for order_item in order.items.all()
+            ]
+            order.suitable_restaurants = list(set.intersection(*[set(list) for list in order_restaurants_by_items]))
 
             order_geocode_address = get_coordinates(order.address)
             for restaurant in order.suitable_restaurants:
