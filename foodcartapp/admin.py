@@ -10,7 +10,7 @@ from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
-from .models import OrderProduct
+from .models import OrderItem
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -110,15 +110,15 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
-class OrderProductInline(admin.TabularInline):
-    model = OrderProduct
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
     extra = 0
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [
-        OrderProductInline,
+        OrderItemInline,
     ]
     list_display = ['id', 'firstname', 'lastname', 'address']
     search_fields = ['firstname', 'lastname', 'address']

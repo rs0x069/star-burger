@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer, ListField
 
-from foodcartapp.models import Product, Order, OrderProduct
+from foodcartapp.models import Product, Order, OrderItem
 
 
 def banners_list_api(request):
@@ -61,14 +61,14 @@ def product_list_api(request):
     })
 
 
-class OrderProductSerializer(ModelSerializer):
+class OrderItemSerializer(ModelSerializer):
     class Meta:
-        model = OrderProduct
+        model = OrderItem
         fields = ['product', 'quantity']
 
 
 class OrderSerializer(ModelSerializer):
-    products = ListField(child=OrderProductSerializer(), allow_empty=False, write_only=True)
+    products = ListField(child=OrderItemSerializer(), allow_empty=False, write_only=True)
 
     class Meta:
         model = Order
@@ -79,14 +79,14 @@ class OrderSerializer(ModelSerializer):
         with transaction.atomic():
             order = Order.objects.create(**validated_data)
             order_content = [
-                OrderProduct(
+                OrderItem(
                     order=order,
                     product=product['product'],
                     quantity=product['quantity'],
                     cost=product['product'].price * product['quantity']
                 ) for product in products
             ]
-            OrderProduct.objects.bulk_create(order_content)
+            OrderItem.objects.bulk_create(order_content)
             return order
 
 

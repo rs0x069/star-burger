@@ -138,7 +138,7 @@ class OrderQuerySet(models.QuerySet):
 
     def with_suitable_restaurants(self):
         orders = self.prefetch_related(
-            Prefetch('items', queryset=OrderProduct.objects.select_related('product'))
+            Prefetch('items', queryset=OrderItem.objects.select_related('product'))
         )
         menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
 
@@ -204,7 +204,7 @@ class Order(models.Model):
         return f'{self.firstname} {self.lastname}, {self.address}'
 
 
-class OrderProduct(models.Model):
+class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='Заказ')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items',
                                 verbose_name='Товар')
