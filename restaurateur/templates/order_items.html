@@ -42,7 +42,14 @@
               <summary>Могут приготовить</summary>
               <ul>
               {% for suitable_restaurant in order.suitable_restaurants %}
-                <li>{{ suitable_restaurant }} - {{ suitable_restaurant.distance }}км.</li>
+                <li>
+                  {{ suitable_restaurant }} -
+                  {% if suitable_restaurant.distance > -1 %}
+                    {{ suitable_restaurant.distance }} км.
+                  {% else%}
+                    Ошибка адреса
+                  {% endif %}
+                </li>
               {% endfor %}
               </ul>
             </details>

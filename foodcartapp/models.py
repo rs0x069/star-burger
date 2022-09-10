@@ -156,7 +156,12 @@ class OrderQuerySet(models.QuerySet):
             order_geocode_address = get_coordinates(order.address)
             for restaurant in order.suitable_restaurants:
                 restaurant_geocode_address = get_coordinates(restaurant.address)
-                restaurant.distance = round(distance.distance(restaurant_geocode_address, order_geocode_address).km, 2)
+                if order_geocode_address and restaurant_geocode_address:
+                    restaurant.distance = round(
+                        distance.distance(restaurant_geocode_address, order_geocode_address).km, 2
+                    )
+                else:
+                    restaurant.distance = -1
             order.suitable_restaurants = sorted(order.suitable_restaurants, key=lambda restaurant: restaurant.distance)
 
         return orders
