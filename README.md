@@ -150,6 +150,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YANDEX_API` - Yandex geocoder API
 - `ROLLBAR_ACCESS_TOKEN` - токен сервиса логирования [Rollbar](https://rollbar.com/)
 - `ROLLBAR_ENVIRONMENT` - окружение `production` или `development`
+- `POSTGRESQL_URL` - параметры подключения к базе данных Postgres в формате `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
 
 ## Цели проекта
 
