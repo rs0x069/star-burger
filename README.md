@@ -152,6 +152,26 @@ Parcel будет следить за файлами в каталоге `bundle
 - `ROLLBAR_ENVIRONMENT` - окружение `production` или `development`
 - `POSTGRESQL_URL` - параметры подключения к базе данных Postgres в формате `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
 
+## Автоматическая сборка проекта на сервере
+Автоматическая сборка проекта на сервере представлена в виде bash-скрипта `deploy_star_burger.sh`, который нужно запустить на сервере.\
+Для этого сначала нужно настроить `sudo` на сервере, чтобы избежать запрос пароля для команд, требующих `sudo`.\
+1. Создайте файл `starburger_commands` в каталоге `/etc/sudoers.d/`
+```shell
+nano /etc/sudoers.d/nginx_reload
+```
+со следующим содержимым:
+```shell
+Defaults:username !requiretty
+Cmnd_Alias NGINX_RELOAD = /usr/bin/systemctl reload nginx.service
+Cmnd_Alias STARBURGER_RESTART = /usr/bin/systemctl restart starburger.service
+username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
+```
+где `username` - имя пользователя, под которым запускается скрипт (замените на своего пользователя)
+2. Скопируйте скрипт на сервер и запустите его:
+```shell
+./deploy_star_burger.sh
+```
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
