@@ -172,6 +172,9 @@ username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
 ./deploy_star_burger.sh
 ```
 
+## Адрес сайта
+Демо-версия сайта доступна по адресу [starburger.systekam.ru](starburger.systekam.ru)
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
