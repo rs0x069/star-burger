@@ -167,7 +167,7 @@ Cmnd_Alias STARBURGER_RESTART = /usr/bin/systemctl restart starburger.service
 username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
 ```
 где `username` - имя пользователя, под которым запускается скрипт (замените на своего пользователя)
-2. Скопируйте скрипт на сервер и запустите его:
+2. Скопируйте скрипт `deploy_star_burger.sh` на сервер, укажите в переменной `ROLLBAR_ACCESS_TOKEN` токен сервиса [Rollbar](https://rollbar.com/) и запустите скрипт:
 ```shell
 ./deploy_star_burger.sh
 ```
