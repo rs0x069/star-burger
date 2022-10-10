@@ -173,7 +173,7 @@ username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
 ```
 
 ## Адрес сайта
-Демо-версия сайта доступна по адресу [starburger.systekam.ru](starburger.systekam.ru)
+Демо-версия сайта доступна по адресу [starburger.systekam.ru](https://starburger.systekam.ru/)
 
 ## Цели проекта
 
