@@ -5,7 +5,7 @@
 staticfiles/
 
 # Backups
-backups/
+backups/**
 
 bundles/**
 node_modules/
@@ -118,8 +118,8 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.venv
+.env*
+.venv*
 env/
 venv/
 ENV/

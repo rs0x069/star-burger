@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      target: prod
+    env_file:
+      - .env
+    volumes:
+      - staticfiles:/app/staticfiles
+      - media:/app/media
+
+  nginx:
+    build: ./docker/nginx
+    depends_on:
+      - app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "99M"
+        max-file: "1"
+    ports:
+      - "80:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - staticfiles:/app/staticfiles
+      - media:/app/media
+
+  postgres:
+    env_file:
+     - .env_db_pgsql
+
+volumes:
+  staticfiles:
+  media:

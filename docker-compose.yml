@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    depends_on:
+      - postgres
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "99M"
+        max-file: "1"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  postgres:
+    image: postgres:14-alpine
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "99M"
+        max-file: "1"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - postgres-data:/var/lib/postgresql/data/
+
+volumes:
+  postgres-data:

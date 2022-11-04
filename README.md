@@ -151,6 +151,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `ROLLBAR_ACCESS_TOKEN` - токен сервиса логирования [Rollbar](https://rollbar.com/)
 - `ROLLBAR_ENVIRONMENT` - окружение `production` или `development`
 - `POSTGRESQL_URL` - параметры подключения к базе данных Postgres в формате `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
+- `DOCKER_APP_ENVIRONMENT`- окружение для докера: `dev` - для разработки, `prod` - для production-сервера.
 
 ## Автоматическая сборка проекта на сервере
 Автоматическая сборка проекта на сервере представлена в виде bash-скрипта `deploy_star_burger.sh`, который нужно запустить на сервере.\
@@ -171,6 +172,26 @@ username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
 ```shell
 ./deploy_star_burger.sh
 ```
+
+## Сборка проекта в докере
+Проект может быть собран в dev-режиме для разработки, и в prod-режиме для production-сервера.
+Оба режима используют базу данных `postgres`.\
+Для базы данных `postgres` создайте файл `.env_db_pgsql` в коневой папке проекта со следующими переменными окружения:
+- `POSTGRES_USER` - пользователь базы данных
+- `POSTGRES_PASSWORD` - пароль пользователя
+- `POSTGRES_DB` - название базы данных
+
+Для запуска проекта в dev-режиме запустите команду:
+```shell
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+Проект в dev-режиме будет доступен по адресу [http://127.0.0.1:8000](https://127.0.0.1:8000)
+
+Для запуска проекта в prod-режиме запустите команду:
+```shell
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+Проект в prod-режиме будет доступен по адресу [http://127.0.0.1](https://127.0.0.1)
 
 ## Адрес сайта
 Демо-версия сайта доступна по адресу [starburger.systekam.ru](https://starburger.systekam.ru/)
