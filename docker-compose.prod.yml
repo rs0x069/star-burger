@@ -21,6 +21,7 @@ services:
         max-file: "1"
     ports:
       - "80:80"
+    restart: "always"
     volumes:
       - /etc/localtime:/etc/localtime
       - staticfiles:/app/staticfiles

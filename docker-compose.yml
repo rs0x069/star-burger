@@ -10,6 +10,7 @@ services:
       options:
         max-size: "99M"
         max-file: "1"
+    restart: "always"
     volumes:
       - /etc/localtime:/etc/localtime
 
@@ -20,6 +21,7 @@ services:
       options:
         max-size: "99M"
         max-file: "1"
+    restart: "always"
     volumes:
       - /etc/localtime:/etc/localtime
       - postgres-data:/var/lib/postgresql/data/
