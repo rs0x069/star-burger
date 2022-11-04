@@ -180,6 +180,7 @@ username ALL=(ALL) NOPASSWD: NGINX_RELOAD, STARBURGER_RESTART
 - `POSTGRES_USER` - пользователь базы данных
 - `POSTGRES_PASSWORD` - пароль пользователя
 - `POSTGRES_DB` - название базы данных
+
 В переменной окружения `POSTGRESQL_URL` в качестве адреса базы данных укажите `postgres`.
 
 Для запуска проекта в dev-режиме запустите команду:
